@@ -7,6 +7,14 @@ import streamlit as st
 
 # Where the backend lives. Locally it's your own machine; on Day 9 we point it at Render.
 API_URL = os.environ.get("API_URL", "http://127.0.0.1:8000")
+@st.cache_resource
+def wake_backend():
+    try:
+        requests.get(f"{API_URL}/health", timeout=3)   # we don't wait for the answer
+    except requests.exceptions.RequestException:
+        pass                                            # a timeout is expected during a cold start
+
+wake_backend()
 N_STEPS = 187
 CLASS_NAMES = ["Normal (N)", "Supraventricular ectopic (S)", "Ventricular ectopic (V)",
                "Fusion (F)", "Unknown / paced (Q)"]
@@ -60,7 +68,7 @@ st.line_chart(pd.DataFrame({"amplitude": values}))
 if st.button("Classify heartbeat", type="primary"):
     try:
         with st.spinner("Contacting the model (the first request can take a while)..."):
-            r = requests.post(f"{API_URL}/predict", json={"values": values}, timeout=90)
+            r = requests.post(f"{API_URL}/predict", json={"values": values}, timeout=150)
         r.raise_for_status()
         result = r.json()
     except requests.exceptions.RequestException as e:
