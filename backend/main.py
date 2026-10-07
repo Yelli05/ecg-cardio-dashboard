@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, field_validator
 
-from model import ECGCNN
+from model import ECGCNN2
 
 MODEL_PATH = Path(__file__).parent / "ecg_model.pth"
 N_STEPS = 187
@@ -25,7 +25,7 @@ ml = {}  # holds the loaded model
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Runs once when the server starts: load the model a single time, not per request
-    model = ECGCNN()
+    model = ECGCNN2(use_bn=True)
     model.load_state_dict(torch.load(MODEL_PATH, map_location="cpu"))
     model.eval()
     ml["model"] = model
